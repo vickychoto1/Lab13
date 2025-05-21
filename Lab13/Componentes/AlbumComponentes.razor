@@ -1,0 +1,47 @@
+﻿@inject Blazored.LocalStorage.ISyncLocalStorageService localStorage
+@inject HttpClient Http
+
+@using Modelos;
+
+@if (albumes == null)
+{
+	<p><em> Cargando...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Titulo</th>
+				<th>Artista</th>
+				<th>Fecha de Publicacion</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var album in albumes)
+			{
+				<tr>
+					<td>@album.Titulo</td>
+					<td>@album.Artista</td>
+					<td>@album.FechaPublicacion</td>
+
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+@code {
+	private List<Album> albumes = new List<Album>();
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Recuperar la lista de starships desde LocalStorage a una variable var
+		var albumGuardado = localStorage.GetItem<List<Album>>("albumes");
+
+		// Validar si la lista fue recuperada correctamente, copiarla a la lista
+		if (albumGuardado != null)
+		{
+			albumes = albumGuardado;
+		}
+	}
+}

@@ -1,0 +1,101 @@
+﻿@page "/"
+@using Modelos
+
+@inject Blazored.LocalStorage.ISyncLocalStorageService localStorage
+
+<h1>Manejo de Albumes</h1>
+
+<EditForm Model="@albumActual" OnValidSubmit="@GuardarAlbum">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <h3>Ingreso/Edicion de Albumes</h3>
+
+    <div class="mb-3">
+        <label>Título del Álbum:</label>
+        <InputText class="form-control" @bind-Value="albumActual.Titulo" />
+    </div>
+
+    <div class="mb-3">
+        <label>Artista del Álbum:</label>
+        <InputText class="form-control" @bind-Value="albumActual.Artista" />
+    </div>
+
+    <div class="mb-3">
+        <label>Fecha de Publicación:</label>
+        <InputDate class="form-control" @bind-Value="albumActual.FechaPublicacion" />
+    </div>
+
+    <h5>Canciones</h5>
+
+    @foreach (var cancion in albumActual.Canciones)
+    {
+        <div class="border p-2 mb-2">
+            <label>Nombre:</label>
+            <InputText class="form-control" @bind-Value="cancion.Nombre" />
+            <label>Artista:</label>
+            <InputText class="form-control" @bind-Value="cancion.Artista" />
+            <label>Duración:</label>
+            <InputText class="form-control" @bind-Value="duracionTemp" />
+        </div>
+    }
+
+    <button class="btn btn-sm btn-secondary" @onclick="AgregarCancion">Agregar Canción</button>
+    <br />
+    <button type="submit" class="btn btn-success mt-3">Guardar Álbum</button>
+    <hr />
+
+    <h4>Filtrar Álbumes por Artista</h4>
+    <InputText class="form-control" @bind-Value="filtroArtista" placeholder="Nombre del artista" />
+    <button class="btn btn-info mt-2" @onclick="FiltrarPorArtista">Buscar</button>
+
+    @if (resultadoBusqueda.Count > 0)
+    {
+        <ul>
+            @foreach (var a in resultadoBusqueda)
+            {
+                <li><strong>@a.Titulo</strong> - @a.Artista - @a.FechaPublicacion.ToShortDateString()</li>
+            }
+        </ul>
+    }
+</EditForm>
+
+<Lab13.Componentes.AlbumComponentes></Lab13.Componentes.AlbumComponentes>
+@code {
+    private Album albumActual = new();
+    private List<Album> albumes = new();
+    private string filtroArtista = "";
+    private List<Album> resultadoBusqueda = new();
+    private string duracionTemp = "00:03:00";
+
+    private void AgregarCancion()
+    {
+        if (TimeSpan.TryParse(duracionTemp, out var duracion))
+        {
+            albumActual.Canciones.Add(new Cancion
+                {
+                    Nombre = "Nueva Canción",
+                    Artista = albumActual.Artista,
+                    Duracion = duracion
+                });
+        }
+    }
+
+    private void GuardarAlbum()
+    {
+
+        var existente = albumes.FirstOrDefault(a => a.Titulo == albumActual.Titulo && a.Artista == albumActual.Artista);
+        if (existente != null)
+            albumes.Remove(existente);
+
+        albumes.Add(albumActual);
+        albumActual = new Album();
+    }
+
+    private void FiltrarPorArtista()
+    {
+        resultadoBusqueda = albumes
+            .Where(a => a.Artista.Contains(filtroArtista, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+}
